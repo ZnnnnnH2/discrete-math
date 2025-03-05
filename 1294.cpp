@@ -4,6 +4,7 @@
 #include <math.h>
 #include <algorithm>
 #include <vector>
+#include <queue>
 
 typedef long long ll;
 typedef int *intt;
@@ -12,22 +13,23 @@ typedef char *charr;
 using namespace std;
 const int inf = 0x3f3f3f3f;
 const int N = 200;
-string str;
-int len;
-char stack[N];
-int top = 0;
-int yxj[N];
-string s;
-int js[N];
+int yxj[N];    // 运算符优先级
+char stack[N]; // 保存运算符的栈
+int top = 0;   // 栈顶指针
 
-void change()
+string change(string str)
 {
+    int len = str.size();
+    string s = ""; // 保存后缀表达式
     for (int i = 0; i < len; i++)
     {
-        if (str[i] >= 'a' && str[i] <= 'z')
+        if (str[i] == ' ')
+        {
+            continue;
+        }
+        else if (str[i] >= 'a' && str[i] <= 'z')
         {
             s += str[i];
-            js[str[i]]++;
         }
         else if (str[i] == '(')
         {
@@ -65,13 +67,12 @@ void change()
     {
         s += stack[i];
     }
+    return s;
 }
-int zongshu = 0;
-char zimu[26];
-int zhenzhi[26];
-bool ans[N];
+bool ans[N]; // 保存计算结果的栈
+bool pqr[N];
 
-bool jisuan()
+bool jisuan(string s)
 {
     memset(ans, 0, sizeof(ans));
     int mun = 0;
@@ -80,7 +81,7 @@ bool jisuan()
     {
         if (s[i] >= 'a' && s[i] <= 'z')
         {
-            ans[mun++] = zhenzhi[js[s[i]]];
+            ans[mun++] = pqr[s[i] - 'a'];
         }
         else
         {
@@ -110,6 +111,13 @@ bool jisuan()
     }
     return ans[0];
 }
+bool yunhan(bool x, bool y)
+{
+    return !x | y;
+}
+bool k[N];
+char c[N];
+queue<int> q;
 int main()
 {
     yxj['!'] = 1;
@@ -118,34 +126,45 @@ int main()
     yxj['>'] = 4;
     yxj['-'] = 5;
     yxj['('] = 6;
-    getline(cin, str);
-    len = str.length();
-    change();
-    for (int i = 0; i < 125; i++)
+    string str;
+    cin >> str;
+    int n = str.size();
+    string s = change(str);
+    int tot = 0;
+    for (int i = 0; i < n; i++)
     {
-        if (js[i])
+        if (str[i] >= 'a' && str[i] <= 'z')
         {
-            zimu[zongshu++] = i;
+            if (!k[str[i] - 'a'])
+            {
+                k[str[i] - 'a'] = 1;
+            }
         }
     }
-    for (int i = 0; i < zongshu; i++)
+    for (int i = 0; i < 26; i++)
     {
-        js[zimu[i]] = i;
-        printf("%c ", zimu[i]);
+        if (k[i])
+        {
+            c[tot++] = i + 'a';
+        }
     }
-    cout << str << endl;
-    int t = 1 << zongshu;
-    for (int i = 0; i < t; i++)
+    int m = 1 << tot;
+    for (int i = 0; i < m; i++)
     {
-        for (int j = 0; j < zongshu; j++)
+        for (int j = 0; j < tot; j++)
         {
-            zhenzhi[zongshu - j - 1] = (i >> j) & 1;
+            pqr[c[j] - 'a'] = i >> (tot - j - 1) & 1;
         }
-        for (int j = 0; j < zongshu; j++)
+        if (jisuan(s))
         {
-            printf("%d ", zhenzhi[j]);
+            q.push(i);
         }
-        printf("%d\n", jisuan() ? 1 : 0);
     }
+    while (q.size() > 1)
+    {
+        printf("m%d|", q.front());
+        q.pop();
+    }
+    printf("m%d\n", q.front());
     return 0;
 }

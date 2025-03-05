@@ -12,22 +12,23 @@ typedef char *charr;
 using namespace std;
 const int inf = 0x3f3f3f3f;
 const int N = 200;
-string str;
-int len;
-char stack[N];
-int top = 0;
-int yxj[N];
-string s;
-int js[N];
+int yxj[200];  // 运算符优先级
+char stack[N]; // 保存运算符的栈
+int top = 0;   // 栈顶指针
 
-void change()
+string change(string str)
 {
+    int len = str.size();
+    string s = ""; // 保存后缀表达式
     for (int i = 0; i < len; i++)
     {
-        if (str[i] >= 'a' && str[i] <= 'z')
+        if (str[i] == ' ')
+        {
+            continue;
+        }
+        else if (str[i] >= 'a' && str[i] <= 'z')
         {
             s += str[i];
-            js[str[i]]++;
         }
         else if (str[i] == '(')
         {
@@ -65,13 +66,12 @@ void change()
     {
         s += stack[i];
     }
+    return s;
 }
-int zongshu = 0;
-char zimu[26];
-int zhenzhi[26];
-bool ans[N];
+bool ans[N]; // 保存计算结果的栈
+bool pqr[4]; // 保存p q r的真值
 
-bool jisuan()
+bool jisuan(string s)
 {
     memset(ans, 0, sizeof(ans));
     int mun = 0;
@@ -80,7 +80,7 @@ bool jisuan()
     {
         if (s[i] >= 'a' && s[i] <= 'z')
         {
-            ans[mun++] = zhenzhi[js[s[i]]];
+            ans[mun++] = pqr[s[i] - 'p'];
         }
         else
         {
@@ -110,6 +110,11 @@ bool jisuan()
     }
     return ans[0];
 }
+bool yunhan(bool x, bool y)
+{
+    return !x | y;
+}
+char s[100];
 int main()
 {
     yxj['!'] = 1;
@@ -118,34 +123,32 @@ int main()
     yxj['>'] = 4;
     yxj['-'] = 5;
     yxj['('] = 6;
-    getline(cin, str);
-    len = str.length();
-    change();
-    for (int i = 0; i < 125; i++)
+    string str = "(p>q)>r";
+    string s1 = change(str);
+    str = "(p&!q)|r";
+    string s2 = change(str);
+    bool flag = true;
+    for (int p = 0; p <= 7; p++)
     {
-        if (js[i])
+        for (int i = 0; i < 3; i++)
         {
-            zimu[zongshu++] = i;
+            pqr[2-i] = p & (1 << i);
+        }
+        bool a = jisuan(s1);
+        bool b = jisuan(s2);
+        printf("p=%d q=%d r=%d A=%d B=%d A>B=%d\n", pqr[0], pqr[1], pqr[2], a, b, yunhan(a, b));
+        if (!yunhan(a, b))
+        {
+            flag = false;
         }
     }
-    for (int i = 0; i < zongshu; i++)
+    if (!flag)
     {
-        js[zimu[i]] = i;
-        printf("%c ", zimu[i]);
+        printf("no\n");
     }
-    cout << str << endl;
-    int t = 1 << zongshu;
-    for (int i = 0; i < t; i++)
+    else
     {
-        for (int j = 0; j < zongshu; j++)
-        {
-            zhenzhi[zongshu - j - 1] = (i >> j) & 1;
-        }
-        for (int j = 0; j < zongshu; j++)
-        {
-            printf("%d ", zhenzhi[j]);
-        }
-        printf("%d\n", jisuan() ? 1 : 0);
+        printf("yes\n");
     }
     return 0;
 }
