@@ -1,2 +1,8 @@
 *.exe
 .vscode/
+[0-9].cpp
+test*.cpp
+temp*.cpp
+try*.cpp
+*.in
+*.out
